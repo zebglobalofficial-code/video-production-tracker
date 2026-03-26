@@ -3,7 +3,6 @@ import{useState,useRef}from"react";
 import{useFirestore}from"@/components/providers/FirestoreProvider";
 import{updateProject}from"@/lib/firestore/projects";
 import{Avatar,StagePill,ProgressBar,iS,lS,bP,bG}from"@/components/ui/index";
-import{getGraphToken,openOneDrivePicker}from"@/lib/onedrive";
 import{STAGES,SCRIPT_SECTIONS,STORYBOARD_SECTIONS,sectionPct}from"@/lib/constants";
 import type{Stage,Attachment,OneDriveItem}from"@/lib/firestore/types";
 type Tab="overview"|"files"|"script"|"storyboard"|"notes";
