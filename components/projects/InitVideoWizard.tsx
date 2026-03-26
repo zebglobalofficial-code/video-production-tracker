@@ -31,12 +31,18 @@ export function InitVideoWizard({onClose,onDone}:{onClose:()=>void;onDone:(id:st
     await updateProject(pid,{attachments:files,stage:"Script Writing"});
     const at=files.filter(f=>!f.type.includes("pdf")).map(f=>`[${f.name}]
 ${f.content}`);
-    const r=await fetch("/api/generate-script",{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({title:proj.title,narratorStyle:proj.narratorStyle,attachmentTexts:at,oneDriveTexts:[]})
-    });
-    await updateProject(pid,{scriptDraft:(await r.json()).script});
+    try {
+      const r = await fetch("/api/generate-script", {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({title:proj.title, narratorStyle:proj.narratorStyle, attachmentTexts:at, oneDriveTexts:[]})
+      });
+      const data = await r.json();
+      const script = data.script || "Script generation failed. Please try again from the Script tab.";
+      await updateProject(pid, {scriptDraft: script});
+    } catch(e) {
+      await updateProject(pid, {scriptDraft: "Script generation failed. Please try again from the Script tab."});
+    }
     setGen(false);
     onDone(pid);
   };
