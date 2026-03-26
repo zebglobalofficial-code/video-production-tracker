@@ -22,12 +22,10 @@ export function ProjectDetailPanel({projectId,onClose}:{projectId:string;onClose
     const loaded:Attachment[]=await Promise.all(Array.from(e.target.files??[]).map(f=>new Promise<Attachment>(res=>{const r=new FileReader();r.onload=()=>res({name:f.name,size:f.size,type:f.type,content:r.result as string});if(f.type==="application/pdf")r.readAsDataURL(f);else r.readAsText(f);})));
     await upd({attachments:[...(proj.attachments??[]),...loaded]});
   };
-  const pick=async()=>{try{const t=await getGraphToken();const p=await openOneDrivePicker(t);const ex=new Set((proj.oneDriveItems??[]).map(i=>i.id));await upd({oneDriveItems:[...(proj.oneDriveItems??[]),...p.filter(x=>!ex.has(x.id))]});}catch(e){console.error(e);}};
   const gen=async()=>{
     setAi(true);
     try{
       let odT:string[]=[];
-      if((proj.oneDriveItems??[]).length>0){const t=await getGraphToken();const r=await fetch("/api/onedrive-read",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({accessToken:t,items:proj.oneDriveItems})});odT=(await r.json()).texts??[];}
       const at=(proj.attachments??[]).filter(a=>!a.type.includes("pdf")).map(a=>`[${a.name}]
 ${a.content}`);
       const r=await fetch("/api/generate-script",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({title:proj.title,narratorStyle:proj.narratorStyle,attachmentTexts:at,oneDriveTexts:odT})});
@@ -75,8 +73,6 @@ ${a.content}`);
             <div style={{border:"2px dashed #E5E7EB",borderRadius:12,padding:20,textAlign:"center",marginBottom:14}}><p style={{fontSize:12,color:"#9CA3AF",marginBottom:12}}>.txt .md .pdf .docx</p><button onClick={()=>ref.current?.click()} style={bP}>Upload files</button><input ref={ref} type="file" multiple accept=".txt,.md,.pdf,.docx,text/*" style={{display:"none"}} onChange={loadFiles}/></div>
             {(proj.attachments??[]).map((f,i)=><div key={i} style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"9px 12px",background:"#F9FAFB",borderRadius:9,marginBottom:7}}><span style={{fontSize:13}}>{f.name} ({(f.size/1024).toFixed(1)}KB)</span><button onClick={()=>upd({attachments:proj.attachments.filter((_,j)=>j!==i)})} style={{background:"none",border:"none",cursor:"pointer",fontSize:20}}>x</button></div>)}
             <p style={{fontWeight:600,fontSize:14,color:"#111",marginTop:20,marginBottom:10}}>OneDrive</p>
-            <button onClick={pick} style={{width:"100%",padding:14,border:"2px dashed #BFDBFE",borderRadius:12,background:"#EFF6FF",color:"#1D4ED8",fontSize:13,fontWeight:700,cursor:"pointer",marginBottom:10}}>Browse OneDrive</button>
-            {(proj.oneDriveItems??[]).map((item,i)=><div key={i} style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"9px 12px",background:"#EFF6FF",borderRadius:9,marginBottom:7}}><span style={{fontSize:13,color:"#1D4ED8"}}>{item.isFolder?"Folder:":"File:"} {item.name}</span><button onClick={()=>upd({oneDriveItems:proj.oneDriveItems.filter((_,j)=>j!==i)})} style={{background:"none",border:"none",cursor:"pointer",fontSize:20}}>x</button></div>)}
           </div>}
           {tab==="script"&&<div>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}><p style={{fontWeight:600,fontSize:14,color:"#111",margin:0}}>Script - {sectionPct(proj.scriptSections,SCRIPT_SECTIONS)}%</p></div>
