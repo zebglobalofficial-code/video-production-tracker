@@ -5,8 +5,8 @@ import{useFirestore}from"@/components/providers/FirestoreProvider";
 import{addProject}from"@/lib/firestore/projects";
 export function AddProjectModal({onClose}:{onClose:()=>void}){
   const{members}=useFirestore();
-  const ws=members.filter(m=>m.role==="writer"||m.role==="editor");
-  const ms=members.filter(m=>m.role==="manager"||m.role==="director");
+  const ws=members.filter(m=>(m.roles??[]).includes("writer")||(m.roles??[]).includes("editor"));
+  const ms=members.filter(m=>(m.roles??[]).includes("manager")||(m.roles??[]).includes("director"));
   const[f,setF]=useState({title:"",assigneeId:"",managerId:"",due:"",narratorStyle:""});
   const[saving,setSaving]=useState(false);
   const save=async()=>{if(!f.title)return;setSaving(true);await addProject({title:f.title,stage:"Initiated",assigneeId:f.assigneeId||null,managerId:f.managerId||null,due:f.due,narratorStyle:f.narratorStyle,scriptDraft:"",scriptSections:{},storyboardSections:{},notes:"",attachments:[],oneDriveItems:[],createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()});setSaving(false);onClose();};
