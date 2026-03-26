@@ -2,7 +2,7 @@
 import{useFirestore}from"@/components/providers/FirestoreProvider";
 import{stagePct}from"@/lib/constants";
 import type{ViewType}from"@/app/dashboard/page";
-const VS:ViewType[]=["Pipeline","Board","Case Studies","Team"];
+const VS:ViewType[]=["My Dashboard","My Projects","Pipeline","Board","Team"];
 interface P{view:ViewType;setView:(v:ViewType)=>void;filterMember:string;setFilterMember:(id:string)=>void;onInitVideo:()=>void;onAddProject:()=>void;onManageTeam:()=>void;}
 export function Header({view,setView,filterMember,setFilterMember,onInitVideo,onAddProject,onManageTeam}:P){
   const{projects,members}=useFirestore();
