@@ -110,13 +110,9 @@ function Inner(){
 
   const generateScript=async(p:any)=>{
     setAiLoading(true);setAiStep("Reading your documents...");
-    const attachTexts=(p.attachments||[]).filter((a:any)=>!a.type.includes("pdf")).map((a:any)=>`[${a.name}]
-${a.content}`).join("
-
-");
+    const attachTexts=(p.attachments||[]).filter((a:any)=>!a.type.includes("pdf")).map((a:any)=>(`[` + a.name + `]\n` + a.content)).join("\n\n");
     setAiStep("Writing script — Problem → Solution → Implementation → Benefits...");
-    const extra=p.guidelines?`
-Additional guidelines: ${p.guidelines}`:"";
+    const extra=p.guidelines?("\nAdditional guidelines: " + p.guidelines):"";
     try{
       const res=await fetch("/api/generate-script",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({title:p.title,narratorStyle:p.narratorStyle||"professional",attachmentTexts:attachTexts?[attachTexts]:[],oneDriveTexts:[],systemOverride:SCRIPT_GUIDELINES+extra})});
       const data=await res.json();
