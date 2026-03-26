@@ -120,9 +120,34 @@ ${f.content}`);
           </p>
           <div style={{display:"flex",justifyContent:"space-between"}}>
             <button onClick={()=>setStep(1)} style={bG}>← Back</button>
-            <button onClick={start} disabled={gen} style={{...bS,opacity:gen?0.55:1,display:"flex",alignItems:"center",gap:6}}>
-              {gen?"Generating script…":"✦ Start video process"}
-            </button>
+            {gen?(
+              <div style={{textAlign:"center",padding:"20px 0"}}>
+                <div style={{display:"flex",flexDirection:"column",gap:12,alignItems:"center"}}>
+                  <div style={{width:40,height:40,border:"3px solid #E5E7EB",borderTop:"3px solid #7c3aed",borderRadius:"50%",animation:"spin 1s linear infinite"}}/>
+                  <p style={{fontSize:14,fontWeight:600,color:"#7c3aed",margin:0}}>Generating your script...</p>
+                  <p style={{fontSize:12,color:"#9CA3AF",margin:0}}>AI is reading your documents and writing the script. This takes about 15–30 seconds.</p>
+                  <div style={{display:"flex",flexDirection:"column",gap:6,width:"100%",marginTop:8}}>
+                    {[
+                      {label:"Reading uploaded documents",done:true},
+                      {label:"Analysing case study content",done:true},
+                      {label:"Writing 2-minute script",done:false},
+                      {label:"Structuring 8 sections",done:false},
+                    ].map((s,i)=>(
+                      <div key={i} style={{display:"flex",alignItems:"center",gap:8,padding:"6px 12px",background:s.done?"#f5f3ff":"#F9FAFB",borderRadius:8}}>
+                        <span style={{fontSize:14}}>{s.done?"✓":"○"}</span>
+                        <span style={{fontSize:12,color:s.done?"#7c3aed":"#9CA3AF"}}>{s.label}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <style>{`@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}`}</style>
+              </div>
+            ):(
+              <div style={{display:"flex",justifyContent:"space-between"}}>
+                <button onClick={()=>setStep(1)} style={bG}>← Back</button>
+                <button onClick={start} style={{...bS,display:"flex",alignItems:"center",gap:6}}>✦ Start video process</button>
+              </div>
+            )}
           </div>
         </div>
       )}
