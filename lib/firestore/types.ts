@@ -12,6 +12,6 @@ export interface Project {
   assigneeId:string|null; managerId:string|null;
   due:string; narratorStyle:string; scriptDraft:string;
   scriptSections:Record<string,boolean>; storyboardSections:Record<string,boolean>;
-  notes:string; attachments:Attachment[]; oneDriveItems:OneDriveItem[];
+  notes:string; guidelines:string; attachments:Attachment[]; oneDriveItems:OneDriveItem[];
   createdAt:string; updatedAt:string;
 }
