@@ -16,8 +16,8 @@ export function ProjectDetailPanel({projectId,onClose}:{projectId:string;onClose
   const ref=useRef<HTMLInputElement>(null);
   if(!proj)return null;
   const a=members.find(m=>m.id===proj.assigneeId),mg=members.find(m=>m.id===proj.managerId);
-  const ws=members.filter(m=>m.role==="writer"||m.role==="editor");
-  const ms=members.filter(m=>m.role==="manager"||m.role==="director");
+  const ws=members.filter(m=>(m.roles??[]).includes("writer")||(m.roles??[]).includes("editor"));
+  const ms=members.filter(m=>(m.roles??[]).includes("manager")||(m.roles??[]).includes("director"));
   const upd=(patch:Parameters<typeof updateProject>[1])=>updateProject(projectId,patch);
   const loadFiles=async(e:React.ChangeEvent<HTMLInputElement>)=>{
     const loaded:Attachment[]=await Promise.all(Array.from(e.target.files??[]).map(f=>new Promise<Attachment>(res=>{const r=new FileReader();r.onload=()=>res({name:f.name,size:f.size,type:f.type,content:r.result as string});if(f.type==="application/pdf")r.readAsDataURL(f);else r.readAsText(f);})));
