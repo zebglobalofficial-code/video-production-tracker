@@ -408,7 +408,7 @@ Or write manually here."
           <div style={{display:"flex",justifyContent:"flex-end",gap:10,marginTop:22}}>
             <button onClick={()=>setModal(null)} style={S.bG}>Cancel</button>
             <button disabled={!newP.title} onClick={async()=>{
-              await addProject({title:newP.title,stage:"initiated",assigneeId:newP.assigneeId||null,managerId:newP.managerId||null,due:newP.due,narratorStyle:newP.narratorStyle,guidelines:newP.guidelines,scriptDraft:"",storyboard:[],notes:"",attachments:[],createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()});
+              await addProject({title:newP.title,stage:"initiated",assigneeId:newP.assigneeId||null,managerId:newP.managerId||null,due:newP.due,narratorStyle:newP.narratorStyle,guidelines:newP.guidelines,scriptDraft:"",storyboard:[],notes:"",attachments:[],oneDriveItems:[],createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()});
               setNewP({title:"",assigneeId:"",managerId:"",due:"",narratorStyle:"Professional & concise",guidelines:""});
               setModal(null);
             }} style={{...S.bP,opacity:!newP.title?0.4:1}}>Create project</button>
