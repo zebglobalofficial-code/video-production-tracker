@@ -83,7 +83,7 @@ function Inner(){
   const[aiLoading,setAiLoading]=useState(false);
   const[aiStep,setAiStep]=useState("");
   const[newP,setNewP]=useState({title:"",assigneeId:"",managerId:"",due:"",narratorStyle:"Professional & concise",guidelines:""});
-  const[newM,setNewM]=useState({name:"",email:"",roles:["writer"]});
+  const[newM,setNewM]=useState<{name:string;email:string;roles:any[]}>({name:"",email:"",roles:["writer"]});
   const[shoutoutTarget,setShoutoutTarget]=useState("");
   const[shoutoutText,setShoutoutText]=useState("");
   const fileRef=useRef<HTMLInputElement>(null);
@@ -379,7 +379,7 @@ Or write manually here."
               <button onClick={()=>{setModal(null);if(currentUser==="_setup")setCurrentUser(null);}} style={S.bG}>Done</button>
               <button disabled={!newM.name||newM.roles.length===0} onClick={async()=>{
                 const i=members.length%COLORS.length;
-                await addMember({name:newM.name,email:newM.email,roles:newM.roles,avatar:newM.name.split(" ").map((w:string)=>w[0]).join("").slice(0,2).toUpperCase(),color:COLORS[i],textColor:CTEXTS[i],streak:0,shoutout:""});
+                await addMember({name:newM.name,email:newM.email,roles:newM.roles as any,avatar:newM.name.split(" ").map((w:string)=>w[0]).join("").slice(0,2).toUpperCase(),color:COLORS[i],textColor:CTEXTS[i],streak:0,shoutout:""});
                 setNewM({name:"",email:"",roles:["writer"]});
               }} style={{...S.bP,opacity:!newM.name||newM.roles.length===0?0.4:1}}>Add member</button>
             </div>
