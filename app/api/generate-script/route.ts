@@ -43,14 +43,24 @@ Keep under 300 words. Tone: ${narratorStyle||"professional"}.`;
     const dateOnly=dateStr.slice(0,8);
     const host=`bedrock-runtime.${region}.amazonaws.com`;
     const path=`/model/${encodeURIComponent(modelId)}/invoke`;
-    const payloadHash=await sha256Hex(body);
+    const payloadHash=await digest(body);
     const canonicalHeaders=`content-type:application/json\nhost:${host}\nx-amz-date:${dateStr}\n`;
     const signedHeaders="content-type;host;x-amz-date";
     const canonicalRequest=["POST",path,"",canonicalHeaders,signedHeaders,payloadHash].join("\n");
     const credScope=`${dateOnly}/${region}/bedrock/aws4_request`;
-    const strToSign=["AWS4-HMAC-SHA256",dateStr,credScope,await sha256Hex(canonicalRequest)].join("\n");
-    const sigKey=await getSignatureKey(secretKey,dateOnly,region);
-    const signature=await hmacHex(sigKey,strToSign);
+    const strToSign=["AWS4-HMAC-SHA256",dateStr,credScope,await digest(canonicalRequest)].join("\n");
+
+    const enc=new TextEncoder();
+    const sign=async(key:CryptoKey,msg:string)=>crypto.subtle.sign("HMAC",key,enc.encode(msg));
+    const importKey=async(raw:ArrayBuffer)=>crypto.subtle.importKey("raw",raw,{name:"HMAC",hash:"SHA-256"},false,["sign"]);
+
+    const k0=await importKey(enc.encode("AWS4"+secretKey));
+    const k1=await importKey(await sign(k0,dateOnly));
+    const k2=await importKey(await sign(k1,region));
+    const k3=await importKey(await sign(k2,"bedrock"));
+    const k4=await importKey(await sign(k3,"aws4_request"));
+    const sigBuf=await sign(k4,strToSign);
+    const signature=Array.from(new Uint8Array(sigBuf)).map(b=>b.toString(16).padStart(2,"0")).join("");
     const authHeader=`AWS4-HMAC-SHA256 Credential=${accessKey}/${credScope}, SignedHeaders=${signedHeaders}, Signature=${signature}`;
 
     const res=await fetch(`https://${host}${path}`,{
@@ -69,25 +79,7 @@ Keep under 300 words. Tone: ${narratorStyle||"professional"}.`;
   }
 }
 
-async function sha256Hex(data:string):Promise<string>{
+async function digest(data:string):Promise<string>{
   const buf=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(data));
   return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,"0")).join("");
-}
-
-async function hmacRaw(keyBytes:Uint8Array,data:string):Promise<ArrayBuffer>{
-  const k=await crypto.subtle.importKey("raw",keyBytes,{name:"HMAC",hash:"SHA-256"},false,["sign"]);
-  return crypto.subtle.sign("HMAC",k,new TextEncoder().encode(data));
-}
-
-async function hmacHex(key:ArrayBuffer,data:string):Promise<string>{
-  const k=await crypto.subtle.importKey("raw",key,{name:"HMAC",hash:"SHA-256"},false,["sign"]);
-  const buf=await crypto.subtle.sign("HMAC",k,new TextEncoder().encode(data));
-  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,"0")).join("");
-}
-
-async function getSignatureKey(secret:string,date:string,region:string):Promise<ArrayBuffer>{
-  const kDate=await hmacRaw(new TextEncoder().encode("AWS4"+secret),date);
-  const kRegion=await hmacRaw(new Uint8Array(kDate),region);
-  const kService=await hmacRaw(new Uint8Array(kRegion),"bedrock");
-  return hmacRaw(new Uint8Array(kService),"aws4_request");
 }
