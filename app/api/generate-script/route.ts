@@ -11,7 +11,7 @@ export async function POST(req:NextRequest){
     const secretKey=process.env.AWS_SECRET_ACCESS_KEY;
 
     if(!modelId||!accessKey||!secretKey){
-      return NextResponse.json({error:"AWS Bedrock credentials not configured in Vercel environment variables"},{status:500});
+      return NextResponse.json({error:"AWS Bedrock credentials not configured"},{status:500});
     }
 
     const context=[...attachmentTexts,...oneDriveTexts].filter(Boolean).join("\n\n---\n\n");
@@ -44,7 +44,6 @@ Keep under 300 words. Tone: ${narratorStyle||"professional"}.`;
     const host=`bedrock-runtime.${region}.amazonaws.com`;
     const path=`/model/${encodeURIComponent(modelId)}/invoke`;
     const payloadHash=await sha256Hex(body);
-
     const canonicalHeaders=`content-type:application/json\nhost:${host}\nx-amz-date:${dateStr}\n`;
     const signedHeaders="content-type;host;x-amz-date";
     const canonicalRequest=["POST",path,"",canonicalHeaders,signedHeaders,payloadHash].join("\n");
@@ -75,19 +74,20 @@ async function sha256Hex(data:string):Promise<string>{
   return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,"0")).join("");
 }
 
-async function hmac(key:Uint8Array|ArrayBuffer,data:string):Promise<ArrayBuffer>{
-  const k=await crypto.subtle.importKey("raw",key instanceof Uint8Array?key.buffer:key,{name:"HMAC",hash:"SHA-256"},false,["sign"]);
+async function hmacRaw(keyBytes:Uint8Array,data:string):Promise<ArrayBuffer>{
+  const k=await crypto.subtle.importKey("raw",keyBytes,{name:"HMAC",hash:"SHA-256"},false,["sign"]);
   return crypto.subtle.sign("HMAC",k,new TextEncoder().encode(data));
 }
 
 async function hmacHex(key:ArrayBuffer,data:string):Promise<string>{
-  const buf=await hmac(key,data);
+  const k=await crypto.subtle.importKey("raw",key,{name:"HMAC",hash:"SHA-256"},false,["sign"]);
+  const buf=await crypto.subtle.sign("HMAC",k,new TextEncoder().encode(data));
   return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,"0")).join("");
 }
 
 async function getSignatureKey(secret:string,date:string,region:string):Promise<ArrayBuffer>{
-  const kDate=await hmac(new TextEncoder().encode("AWS4"+secret),date);
-  const kRegion=await hmac(kDate,region);
-  const kService=await hmac(kRegion,"bedrock");
-  return hmac(kService,"aws4_request");
+  const kDate=await hmacRaw(new TextEncoder().encode("AWS4"+secret),date);
+  const kRegion=await hmacRaw(new Uint8Array(kDate),region);
+  const kService=await hmacRaw(new Uint8Array(kRegion),"bedrock");
+  return hmacRaw(new Uint8Array(kService),"aws4_request");
 }
